@@ -1,0 +1,109 @@
+services:
+  # Azure SQL Edge (Replace SQL Server for ARM64) 
+  sqlserver:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: nexusadmin-sqlserver
+    platform: linux/arm64
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password123
+      - MSSQL_PID=Developer
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    restart: unless-stopped
+    networks:
+      - nexusadmin-network
+
+  # MongoDB (Alternative to Cosmos DB - Cosmos has a MongoDB API)
+  mongodb:
+    image: mongo:7
+    container_name: nexusadmin-mongodb
+    platform: linux/arm64
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=NexusAdminDB
+    volumes:
+      - mongodb-data:/data/db
+    restart: unless-stopped
+    networks:
+      - nexusadmin-network
+
+  # Redis (For caching)
+  redis:
+    image: redis:7-alpine
+    container_name: nexusadmin-redis
+    platform: linux/arm64
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - nexusadmin-network
+
+  # Azurite (Azure Storage Emulator - compatible ARM64)
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: nexusadmin-azurite
+    platform: linux/arm64
+    ports:
+      - "10000:10000"  # Blob service
+      - "10001:10001"  # Queue service
+      - "10002:10002"  # Table service
+    volumes:
+      - azurite-data:/data
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --loose
+    restart: unless-stopped
+    networks:
+      - nexusadmin-network
+
+  # MailHog ARM64 compatible
+  mailhog:
+    image: jcalonso/mailhog:latest
+    container_name: nexusadmin-mailhog
+    platform: linux/arm64
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    restart: unless-stopped
+    networks:
+      - nexusadmin-network
+
+  # Mongo Express (UI para MongoDB - optional)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: nexusadmin-mongo-ui
+    platform: linux/arm64
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password123
+      - ME_CONFIG_MONGODB_URL=mongodb://admin:password123@mongodb:27017/
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    networks:
+      - nexusadmin-network
+
+networks:
+  nexusadmin-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+    driver: local
+  mongodb-data:
+    driver: local
+  redis-data:
+    driver: local
+  azurite-data:
+    driver: local

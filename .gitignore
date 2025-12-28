@@ -1,0 +1,154 @@
+# ===========================  
+# .NET Core / ASP.NET  
+# ===========================  
+bin/  
+obj/  
+*.user  
+*.suo  
+*.userosscache  
+*.sln.docstates  
+  
+# Build results  
+[Dd]ebug/  
+[Dd]ebugPublic/  
+[Rr]elease/  
+[Rr]eleases/  
+x64/  
+x86/  
+[Ww][Ii][Nn]32/  
+[Aa][Rr][Mm]/  
+[Aa][Rr][Mm]64/  
+bld/  
+[Ll]og/  
+[Ll]ogs/  
+  
+# ===========================  
+# Azure Functions  
+# ===========================  
+local.settings.json  
+__blobstorage__  
+__queuestorage__  
+__azurite_db*__.json  
+.python_packages/  
+  
+# ===========================  
+# Config and secrets  
+# ===========================  
+appsettings.Development.json  
+appsettings.Local.json  
+*.env  
+.env  
+.env.local  
+secrets.json  
+*.pfx  
+*.p12  
+*.key  
+*.pem  
+  
+# ===========================  
+# NuGet  
+# ===========================  
+*.nupkg  
+*.snupkg  
+**/packages/*  
+!**/packages/build/  
+*.nuget.props  
+*.nuget.targets  
+project.lock.json  
+project.fragment.lock.json  
+artifacts/  
+  
+# ===========================  
+# Visual Studio / Rider  
+# ===========================  
+.vs/  
+.vscode/  
+!.vscode/extensions.json  
+.idea/  
+*.swp  
+*.swo  
+*~  
+*.user  
+*.userosscache  
+*.suo  
+*.cache  
+*.ilk  
+*.meta  
+*.pch  
+*.pdb  
+*.pgc  
+*.pgd  
+*.rsp  
+*.sbr  
+*.tlb  
+*.tli  
+*.tlh  
+*.tmp  
+*.vspscc  
+*.vssscc  
+.builds  
+*.pidb  
+*.svclog  
+*.scc  
+  
+# ===========================  
+# Testing  
+# ===========================  
+TestResults/  
+[Tt]est[Rr]esult*/  
+[Bb]uild[Ll]og.*  
+*.trx  
+*.coverage  
+*.coveragexml  
+  
+# ===========================  
+# Database  
+# ===========================  
+*.mdf  
+*.ldf  
+*.ndf  
+*.db  
+*.sqlite  
+*.sqlite3  
+  
+# ===========================  
+# Logs  
+# ===========================  
+*.log  
+logs/  
+*.tmp  
+  
+# ===========================  
+# Operative system  
+# ===========================  
+# Windows  
+Thumbs.db  
+ehthumbs.db  
+Desktop.ini  
+$RECYCLE.BIN/  
+*.cab  
+*.msi  
+*.msix  
+*.msm  
+*.msp  
+*.lnk  
+  
+# macOS  
+.DS_Store  
+.AppleDouble  
+.LSOverride  
+._*  
+  
+# Linux  
+*~  
+.directory  
+  
+# ===========================  
+# Others  
+# ===========================  
+*.bak  
+*.orig  
+publish/  
+PublishProfiles/  
+*.pubxml  
+*.publishproj
