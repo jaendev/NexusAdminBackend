@@ -17,16 +17,16 @@ public class CreateUserFunction
 
     public CreateUserFunction(ILogger<CreateUserFunction> logger)
     {
-        _logger = logger;
+        this._logger = logger;
     }
-    
+
     [Function("CreateUser")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "users")]
         HttpRequestData req
-        )
+    )
     {
-        _logger.LogInformation("Process user creation");
+        this._logger.LogInformation("Process user creation");
         // Read body
         try
         {
@@ -39,12 +39,12 @@ public class CreateUserFunction
             if (data == null)
             {
                 var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-                await badRequest.WriteAsJsonAsync(new {error = "Invalid request body"});
+                await badRequest.WriteAsJsonAsync(new { error = "Invalid request body" });
                 return badRequest;
             }
-            
+
             // TODO: Call here Use Case
-            
+
             // var result = await _createUserUseCase.ExecuteAsync(data);
 
             // For now, test request
@@ -64,7 +64,7 @@ public class CreateUserFunction
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error: {ex.Message}");
+            this._logger.LogError($"Error: {ex.Message}");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteAsJsonAsync(new { error = "Inside server error" });
             return errorResponse;
