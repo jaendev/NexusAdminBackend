@@ -6,18 +6,23 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using NexusAdmin.Core.Entities;
+using NexusAdmin.Core.Exceptions;
 using NexusAdmin.Core.UseCases.Users.CreateUser;
 using NexusAdmin.Functions.Configuration;
+using NexusAdmin.Functions.DTO.User;
 
 namespace NexusAdmin.Functions.Users;
 
 public class CreateUserFunction
 {
     private readonly ILogger<CreateUserFunction> _logger;
+    private readonly CreateUserUseCase _createUserUseCase;
 
-    public CreateUserFunction(ILogger<CreateUserFunction> logger)
+    public CreateUserFunction(ILogger<CreateUserFunction> logger, CreateUserUseCase createUserUseCase)
     {
         this._logger = logger;
+        this._createUserUseCase = createUserUseCase;
     }
 
     [Function("CreateUser")]
@@ -27,47 +32,64 @@ public class CreateUserFunction
     )
     {
         this._logger.LogInformation("Process user creation");
+        
         // Read body
         try
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            CreateUserRequest? data = JsonSerializer.Deserialize<CreateUserRequest>(
-                requestBody,
-                JsonOptions.Default
-            );
+            CreateUserDto? clientDto = JsonSerializer.Deserialize<CreateUserDto>(requestBody, JsonOptions.Default);
 
-            if (data == null)
+            // Map to Use Case request
+            if (clientDto == null) 
             {
-                var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-                await badRequest.WriteAsJsonAsync(new { error = "Invalid request body" });
-                return badRequest;
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteAsJsonAsync(new { error = "Invalid request body" });
+                return badResponse;
             }
+            
+            var request = new CreateUserRequest
+            {
+                Email = clientDto.Email,
+                Name = clientDto.Name,
+                Role = Enum.TryParse<User.UserRole>(clientDto.Role, out var role) ? role : User.UserRole.User
+            };
 
-            // TODO: Call here Use Case
+            // Case Execute Use Case
+            var result = await this._createUserUseCase.ExecuteAsync(request);
 
-            // var result = await _createUserUseCase.ExecuteAsync(data);
+            // Return response
+            _logger.LogInformation($"User created: {result.Id}");
 
-            // For now, test request
-            HttpResponseData? response = req.CreateResponse(HttpStatusCode.OK);
+            var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(new
             {
-                message = "Created user",
-                data = new
-                {
-                    id = Guid.NewGuid().ToString(),
-                    email = data.Email,
-                    name = data.Name
-                }
+                success = true,
+                message = "User created successfully",
+                data = result
             });
 
             return response;
         }
+        catch (ValidationException ex)
+        {
+            _logger.LogWarning($"Validation error: {ex.Message}");
+            var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest.WriteAsJsonAsync(new { error = ex.Message });
+            return badRequest;
+        }
+        catch (UserAlreadyExistsException ex)
+        {
+            _logger.LogWarning($"User already exists: {ex.Message}");
+            var conflict = req.CreateResponse(HttpStatusCode.Conflict);
+            await conflict.WriteAsJsonAsync(new { error = ex.Message });
+            return conflict;
+        }
         catch (Exception ex)
         {
-            this._logger.LogError($"Error: {ex.Message}");
-            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
-            await errorResponse.WriteAsJsonAsync(new { error = "Inside server error" });
-            return errorResponse;
+            _logger.LogError($"Error: {ex.Message}");
+            var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await error.WriteAsJsonAsync(new { error = "Internal server error" });
+            return error;
         }
     }
 }

@@ -28,7 +28,7 @@ public class CreateUserUseCase
         if (await this._userRepository.ExistsByEmailAsync(email))
         {
             throw new UserAlreadyExistsException(
-                $"Is already exists with email {email.Value}"
+                $"User already exists with email {email.Value}"
             );
         }
         

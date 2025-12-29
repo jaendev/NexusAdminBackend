@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace NexusAdmin.Functions.Configuration;
 
-public static class JsonOptions
+public class JsonOptions
 {
     public static JsonSerializerOptions Default => new()
     {
