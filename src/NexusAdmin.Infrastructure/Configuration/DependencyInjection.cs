@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NexusAdmin.Core.Interfaces.Repositories;
 using NexusAdmin.Core.Interfaces.Services;
 using NexusAdmin.Infrastructure.Persistence.MongoDB.Configuration;
@@ -21,7 +22,7 @@ public static class DependencyInjection
 
         services.AddSingleton<MongoDbContext>();
 
-        // Repositories
+        // Repositories (con logging)
         services.AddScoped<IUserRepository, MongoDbUserRepository>();
 
         // Email Configuration

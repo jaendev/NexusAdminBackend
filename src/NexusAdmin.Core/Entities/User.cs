@@ -14,10 +14,10 @@ public class User
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
     
-    // Private constructor for avoid directly creation
+    // Private constructor to prevent direct instantiation
     private User() { }
     
-    // Factory method for user creation
+    // Factory method to create a new user
     public static User Create(Email email, string name, UserRole role)
     {
         ValidateName(name);
@@ -33,7 +33,7 @@ public class User
         };
     }
     
-    // Factory method for reconstruct from DB
+    // Factory method to reconstruct user from database
     public static User Reconstruct(
         string id,
         Email email,
@@ -41,7 +41,7 @@ public class User
         UserRole role,
         bool isActive,
         DateTime createdAt,
-        DateTime updatedAt
+        DateTime? updatedAt
         )
     {
         return new User
@@ -57,7 +57,6 @@ public class User
     }
     
     // Business methods
-
     public void UpdateName(string newName)
     {
         ValidateName(newName);
@@ -69,7 +68,7 @@ public class User
     {
         if (Role == newRole)
         {
-            throw new ValidationException("The user is already this role");
+            throw new ValidationException("User already has this role");
         }
         
         Role = newRole;
@@ -80,10 +79,10 @@ public class User
     {
         if (IsActive)
         {
-            throw new ValidationException("The user is already active");
+            throw new ValidationException("User is already active");
         }
 
-        IsActive = false;
+        IsActive = true;
         UpdatedAt = DateTime.UtcNow;
     }
     
@@ -91,10 +90,10 @@ public class User
     {
         if (!IsActive)
         {
-            throw new ValidationException("The user is already inactive");
+            throw new ValidationException("User is already inactive");
         }
 
-        IsActive = true;
+        IsActive = false;
         UpdatedAt = DateTime.UtcNow;
     }
     
@@ -103,17 +102,17 @@ public class User
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ValidationException("Name can't be empty");
+            throw new ValidationException("Name cannot be empty");
         }
 
         if (name.Trim().Length < 3)
         {
-            throw new ValidationException("Name can't be less than 3 characters");
+            throw new ValidationException("Name must be at least 3 characters long");
         }
 
         if (name.Trim().Length > 100)
         {
-            throw new ValidationException("Name can't be more than 100 characters");
+            throw new ValidationException("Name cannot exceed 100 characters");
         }
     }
 

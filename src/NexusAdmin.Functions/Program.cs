@@ -1,9 +1,15 @@
 using System.Text.Json;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NexusAdmin.Core.UseCases.Users.ActivateUser;
 using NexusAdmin.Infrastructure.Configuration;
 using NexusAdmin.Core.UseCases.Users.CreateUser;
-using NexusAdmin.Functions.Configuration;
+using NexusAdmin.Core.UseCases.Users.DeactivateUser;
+using NexusAdmin.Core.UseCases.Users.DeleteUser;
+using NexusAdmin.Core.UseCases.Users.GetUser;
+using NexusAdmin.Core.UseCases.Users.ListUsers;
+using NexusAdmin.Core.UseCases.Users.UpdateUser;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
@@ -11,7 +17,7 @@ var host = new HostBuilder()
     {
         // Application Insights
         services.AddApplicationInsightsTelemetryWorkerService();
-        // services.ConfigureFunctionsApplicationInsights();
+        services.ConfigureFunctionsApplicationInsights();
         
         // Infrastructure (Repositories + Services)
         services.AddInfrastructure(context.Configuration);
@@ -26,6 +32,13 @@ var host = new HostBuilder()
         
         // Use Cases
         services.AddScoped<CreateUserUseCase>();
+        services.AddScoped<CreateUserUseCase>();
+        services.AddScoped<GetUserByIdUseCase>();
+        services.AddScoped<ListUsersUseCase>();
+        services.AddScoped<UpdateUserUseCase>();
+        services.AddScoped<DeleteUserUseCase>();
+        services.AddScoped<ActivateUserUseCase>();
+        services.AddScoped<DeactivateUserUseCase>();
     })
     .Build();
 

@@ -21,24 +21,24 @@ public class CreateUserUseCase
 
     public async Task<CreateUserResponse> ExecuteAsync(CreateUserRequest request)
     {
-        // Validate and create value object
+        // Validate and create email value object
         Email? email = Email.Create(request.Email);
         
-        // Verify if exist
+        // Check if user already exists
         if (await this._userRepository.ExistsByEmailAsync(email))
         {
             throw new UserAlreadyExistsException(
-                $"User already exists with email {email.Value}"
+                $"A user with email '{email.Value}' already exists"
             );
         }
         
         // Create domain entity
         User user = User.Create(email, request.Name, request.Role);
         
-        // Persist
+        // Persist to database
         User createdUser = await this._userRepository.CreateAsync(user);
         
-        // Send welcome Email
+        // Send welcome email (non-critical operation)
         try
         {
             await this._emailService.SendWelcomeEmailAsync(
@@ -48,7 +48,7 @@ public class CreateUserUseCase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending email: {ex.Message}");
+            Console.WriteLine($"Failed to send welcome email: {ex.Message}");
         }
 
         return new CreateUserResponse

@@ -27,17 +27,17 @@ public class SmtpEmailService : IEmailService
             HtmlBody = $@"
                 <html>
                 <body style='font-family: Arial, sans-serif;'>
-                    <h1 style='color: #333;'>¡Hello {userName ?? "User"}!</h1>
+                    <h1 style='color: #333;'>Hello {userName ?? "User"}!</h1>
                     <p>Welcome to <strong>NexusAdmin</strong>.</p>
-                    <p>Your account created successful.</p>
+                    <p>Your account has been created successfully.</p>
                     <br>
                     <p style='color: #666; font-size: 12px;'>
-                        This is an automatic email, please do not reply.
+                        This is an automated email. Please do not reply.
                     </p>
                 </body>
                 </html>
             ",
-            TextBody = $"Hello {userName}!\n\nWelcome to NexusAdmin.\nYour account created successful."
+            TextBody = $"Hello {userName}!\n\nWelcome to NexusAdmin.\nYour account has been created successfully."
         };
         
         message.Body = bodyBuilder.ToMessageBody();
@@ -60,8 +60,8 @@ public class SmtpEmailService : IEmailService
             HtmlBody = $@"
                 <html>
                 <body style='font-family: Arial, sans-serif;'>
-                    <h1 style='color: #333;'>Recover password</h1>
-                    <p>You have requested your password.</p>
+                    <h1 style='color: #333;'>Password Recovery</h1>
+                    <p>You have requested to reset your password.</p>
                     <p>Your recovery code is: <strong>{resetToken}</strong></p>
                     <p>This code expires in 15 minutes.</p>
                 </body>

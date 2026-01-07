@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using NexusAdmin.Core.Entities;
@@ -15,12 +16,14 @@ namespace NexusAdmin.Infrastructure.Persistence.MongoDB.Repositories;
 public class MongoDbUserRepository : IUserRepository
 {
     private readonly IMongoCollection<UserDocument> _users;
+    private readonly ILogger<MongoDbUserRepository> _logger;
 
-    public MongoDbUserRepository(MongoDbContext context, IOptions<MongoDbSettings> settings)
+    public MongoDbUserRepository(MongoDbContext context, IOptions<MongoDbSettings> settings, ILogger<MongoDbUserRepository> logger)
     {
         this._users = context.GetCollection<UserDocument>(settings.Value.UsersCollectionName);
+        _logger = logger;
         
-        // Create unique index in email
+        // Create unique index on email
         IndexKeysDefinition<UserDocument> indexKeys = Builders<UserDocument>.IndexKeys.Ascending(u => u.Email);
         CreateIndexOptions indexOptions = new CreateIndexOptions() { Unique = true };
         CreateIndexModel<UserDocument> indexModel = new CreateIndexModel<UserDocument>(indexKeys, indexOptions);
@@ -42,7 +45,7 @@ public class MongoDbUserRepository : IUserRepository
 
         if (document == null)
         {
-            throw new NotFoundException($"User with id {id} not found");
+            throw new NotFoundException($"User with ID '{id}' not found");
         }
 
         return MapToDomain(document);
@@ -79,7 +82,7 @@ public class MongoDbUserRepository : IUserRepository
 
         if (result.MatchedCount == 0)
         {
-            throw new NotFoundException($"User with id {user.Id} not found");
+            throw new NotFoundException($"User with ID '{user.Id}' not found");
         }
 
         return user;
@@ -92,7 +95,7 @@ public class MongoDbUserRepository : IUserRepository
 
         if (result.DeletedCount == 0)
         {
-            throw new NotFoundException($"User with id {id} not found");
+            throw new NotFoundException($"User with ID '{id}' not found");
         }
     }
 
@@ -123,19 +126,70 @@ public class MongoDbUserRepository : IUserRepository
         };
     }
 
-    private static User MapToDomain(UserDocument document)
+    private User MapToDomain(UserDocument document)
     {
-        Email email = Email.Create(document.Email);
-        User.UserRole role = Enum.Parse<User.UserRole>(document.Role);
-        
-        return User.Reconstruct(
-            document.Id,
-            email,
-            document.Name,
-            role,
-            document.IsActive,
-            document.CreatedAt,
-            document.UpdatedAt!.Value
-        );
+        try
+        {
+            _logger.LogInformation($"Mapping document: ID={document.Id}");
+            
+            // Basic validations
+            if (string.IsNullOrWhiteSpace(document.Id))
+                throw new Exception("Document has empty ID");
+
+            if (string.IsNullOrWhiteSpace(document.Email))
+                throw new Exception("Document has empty email");
+
+            if (string.IsNullOrWhiteSpace(document.Name))
+                throw new Exception("Document has empty name");
+
+            if (string.IsNullOrWhiteSpace(document.Role))
+                throw new Exception("Document has empty role");
+
+            // Create Email value object
+            Email email;
+            try
+            {
+                email = Email.Create(document.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error creating email: {ex.Message}");
+                throw;
+            }
+
+            // Parse Role enum
+            if (!Enum.TryParse<User.UserRole>(document.Role, true, out var role))
+            {
+                _logger.LogWarning($"Invalid role '{document.Role}', defaulting to User");
+                role = User.UserRole.User;
+            }
+
+            DateTime? updatedAt = document.UpdatedAt;
+
+            // Reconstruct entity
+            var user = User.Reconstruct(
+                id: document.Id,
+                email: email,
+                name: document.Name,
+                role: role,
+                isActive: document.IsActive,
+                createdAt: document.CreatedAt,
+                updatedAt: updatedAt
+            );
+
+            _logger.LogInformation($"Successfully mapped user: {user.Email!.Value}");
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error mapping document to user: {ex.Message}");
+            _logger.LogError($"   Document ID: {document?.Id ?? "null"}");
+            _logger.LogError($"   Email: {document?.Email ?? "null"}");
+            _logger.LogError($"   Name: {document?.Name ?? "null"}");
+            _logger.LogError($"   Role: {document?.Role ?? "null"}");
+            _logger.LogError($"   CreatedAt: {document?.CreatedAt}");
+            _logger.LogError($"   UpdatedAt: {document?.UpdatedAt?.ToString() ?? "null"}");
+            throw new Exception($"Failed to map user from database: {ex.Message}", ex);
+        }
     }
 }

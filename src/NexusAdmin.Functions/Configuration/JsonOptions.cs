@@ -4,7 +4,7 @@ namespace NexusAdmin.Functions.Configuration;
 
 public class JsonOptions
 {
-    public static JsonSerializerOptions Default => new()
+    public static JsonSerializerOptions? Default => new()
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

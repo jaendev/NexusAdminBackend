@@ -31,15 +31,14 @@ public class CreateUserFunction
         HttpRequestData req
     )
     {
-        this._logger.LogInformation("Process user creation");
+        this._logger.LogInformation("Processing user creation request");
         
-        // Read body
         try
         {
+            // Read and deserialize request body
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             CreateUserDto? clientDto = JsonSerializer.Deserialize<CreateUserDto>(requestBody, JsonOptions.Default);
 
-            // Map to Use Case request
             if (clientDto == null) 
             {
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -47,6 +46,7 @@ public class CreateUserFunction
                 return badResponse;
             }
             
+            // Map DTO to use case request
             var request = new CreateUserRequest
             {
                 Email = clientDto.Email,
@@ -54,11 +54,10 @@ public class CreateUserFunction
                 Role = Enum.TryParse<User.UserRole>(clientDto.Role, out var role) ? role : User.UserRole.User
             };
 
-            // Case Execute Use Case
+            // Execute use case
             var result = await this._createUserUseCase.ExecuteAsync(request);
 
-            // Return response
-            _logger.LogInformation($"User created: {result.Id}");
+            _logger.LogInformation($"User created successfully: {result.Id}");
 
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(new
@@ -86,7 +85,7 @@ public class CreateUserFunction
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error: {ex.Message}");
+            _logger.LogError($"Unexpected error: {ex.Message}");
             var error = req.CreateResponse(HttpStatusCode.InternalServerError);
             await error.WriteAsJsonAsync(new { error = "Internal server error" });
             return error;

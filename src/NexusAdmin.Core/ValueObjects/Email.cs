@@ -21,14 +21,14 @@ public class Email
     {
         if (string.IsNullOrWhiteSpace(email))
         {
-            throw new ArgumentException("Email can't be empty", nameof(email));
+            throw new ArgumentException("Email cannot be empty", nameof(email));
         }
 
         email = email.Trim().ToLowerInvariant();
 
         if (!EmailRegex.IsMatch(email))
         {
-            throw new ArgumentException($"Email {email} is not valid", nameof(email));
+            throw new ArgumentException($"Email '{email}' is invalid", nameof(email));
         }
 
         return new Email(email);
